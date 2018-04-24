@@ -1,0 +1,26 @@
+{
+  "name": "snarkwrapper",
+  "version": "0.0.1",
+  "description": "A snarkWrapper that takes two files `vk.json` and `pk.json` and deploys a contract verifys the proof in `pk.json`  with the `vk.json`.",
+  "main": "deploy.js",
+  "dependencies": {
+    "left-pad": "^1.2.0",
+    "sjcl": "^1.0.7",
+    "solc": "^0.4.19",
+    "web3": "^0.20.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barryWhiteHat/snarkWrapper.git"
+  },
+  "author": "",
+  "license": " LGPL-3.0 ",
+  "bugs": {
+    "url": "https://github.com/barryWhiteHat/snarkWrapper/issues"
+  },
+  "homepage": "https://github.com/barryWhiteHat/snarkWrapper#readme"
+}
