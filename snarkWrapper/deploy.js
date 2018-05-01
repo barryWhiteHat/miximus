@@ -80,8 +80,8 @@ snark.new(
                                console.log("deployed err: ", e);
                                miximus_deployed = contract;
                                console.log(miximus_deployed.address);
-                               //1111...1111 is the salt 3fdc....03309 is the withdraw address
-                               nullifier = "0x1111111111111111111111113fdc3192693e28ff6aee95320075e4c26be03309";
+                               //FFFF...FFFF is the salt 3fdc....03309 is the address that will recive the funds.
+                               nullifier = "0x3fdc3192693e28ff6aee95320075e4c26be03309FFFFFFFFFFFFFFFFFFFFFFFA";
                                sk = "0xc9b94d9a757f6a57e38809be7dca7599fb0d1bb5ee6b2e7c685092dd8b5e71db";
                                miximus_deployed.getSha256(nullifier, sk, function (e, leaf) { 
                                    console.log("leaf: ", leaf, "\n", nullifier, sk);
@@ -103,7 +103,7 @@ snark.new(
                                                console.log("verifyed: " , res, err);
                                                //you will notice here that 0x3fdc...03308!= 3fdc....03309 from above
                                                // this is a small bug in libsnark that i have raised with them. 
-                                               console.log(web3.eth.getBalance("0x3fdc3192693e28ff6aee95320075e4c26be03308"));
+                                               console.log(web3.eth.getBalance("0x3fdc3192693e28ff6aee95320075e4c26be03309"));
                                                miximus_deployed.getTree( function (err, tree) { 
                                                    //TODO: fix dropping of leading zeros, tree17 should print 256 0's
                                                    // same issues in other variables causes a problem in main.cpp

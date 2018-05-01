@@ -5,8 +5,8 @@ import "Verifier.sol";
 
 contract Miximus is MerkelTree {
     mapping (bytes32 => bool) roots;
-    mapping (uint256 => bool) nullifiers;
-
+    mapping (bytes32 => bool) nullifiers;
+    event Withdraw (address); 
     Verifier public zksnark_verify;
     function Miximus (address _zksnark_verify) {
         zksnark_verify = Verifier(_zksnark_verify);
@@ -31,10 +31,12 @@ contract Miximus is MerkelTree {
         ) returns (address) {
         address recipient  = nullifierToAddress(reverse(bytes32(input[2])));      
         require(roots[reverse(bytes32(input[0]))]);
-        require(!nullifiers[input[2]]);
+
+        require(!nullifiers[reverse(bytes32(input[2]))]);
         require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input));
         recipient.transfer(1 ether);
-        nullifiers[input[2]] = true;
+        nullifiers[padZero(reverse(bytes32(input[2])))] = true;
+        Withdraw(recipient);
         return(recipient);
     }
 
@@ -45,11 +47,13 @@ contract Miximus is MerkelTree {
             mstore(add(y, 20), source)
         }
         //trace(source, y[0], y[1]);
-        return(address(y[1]));
+        return(address(y[0]));
     }
 
 
-    // hack to side step a libshark bug. See issues where i will link the discussion with libsnark. 
+    // hack to side step a libshark only allows 253 bit chunks in its output
+    // to overcome this we only validate the first 252 bits of the merkel root
+    // and the nullifier. We set the last byte to zero.
     function padZero(bytes32 x) returns(bytes32) {
                  //0x1111111111111111111111113fdc3192693e28ff6aee95320075e4c26be03308
         return(x & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0);
