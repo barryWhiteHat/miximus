@@ -1,7 +1,7 @@
 # Miximus
+Ethereum Mixer an *EXPERIMENTAL* protoype
 
 [![Join the chat at https://gitter.im/barrywhitehat/miximus_eth](https://badges.gitter.im/barrywhitehat/miximus_eth.svg)](https://gitter.im/barrywhitehat/miximus_eth?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-Ethereum Mixer an *EXPERIMENTAL* protoype
 
 ## How it works
 When someone sends 1 ether to the `deposit` function in miximus.sol they get the right to append single leaf
