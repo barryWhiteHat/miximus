@@ -3,12 +3,12 @@ Ethereum Mixer an *EXPERIMENTAL* protoype
 
 ## How it works
 When someone sends 1 ether to the `deposit` function in miximus.sol they get the right to append single leaf
-onto the merkel tree. 
+onto the merkle tree. 
 
-Afterwards someone who has the secret key (sk) and nullifier of the leaf of the merkel tree is allowed to 
+Afterwards someone who has the secret key (sk) and nullifier of the leaf of the merkle tree is allowed to 
 withdraw 1 ether. But instead of revealing the information to prove that they control it. They (using a zksnark)
 produce a proof that they know this information without revealing it. They also create a proof that their leaf 
-is in the merkel tree. 
+is in the merkle tree. 
 
 When they verify this proof they reveal the nullifier, but not the sk. So no one is able to tell which nullifier 
 maps to which leaf.
