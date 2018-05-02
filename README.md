@@ -1,4 +1,6 @@
 # Miximus
+
+[![Join the chat at https://gitter.im/barrywhitehat/miximus_eth](https://badges.gitter.im/barrywhitehat/miximus_eth.svg)](https://gitter.im/barrywhitehat/miximus_eth?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Ethereum Mixer an *EXPERIMENTAL* protoype
 
 ## How it works
