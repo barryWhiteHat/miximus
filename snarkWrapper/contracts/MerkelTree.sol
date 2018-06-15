@@ -13,9 +13,6 @@ contract MerkelTree {
     bytes public vk;
 
     function MerkelTree() {
-        for (uint i = 0; i < 16; i++)
-            MT.leaves[i] = 0x0;
-
     }
 
 
