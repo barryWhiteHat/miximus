@@ -2,18 +2,21 @@ pragma solidity ^0.4.19;
 
 import "MerkelTree.sol";
 import "Verifier.sol";
+import "ERC20.sol";
 
 contract Miximus is MerkelTree {
     mapping (bytes32 => bool) roots;
     mapping (bytes32 => bool) nullifiers;
     event Withdraw (address); 
     Verifier public zksnark_verify;
-    function Miximus (address _zksnark_verify) {
+    ERC20 public erc20;
+    function Miximus (address _zksnark_verify, address _erc20Address) {
         zksnark_verify = Verifier(_zksnark_verify);
+        erc20 = ERC20(_erc20Address);
     }
 
     function deposit (bytes32 leaf) payable  {
-        require(msg.value == 1 ether);
+        require(erc20.transferFrom(msg.sender, address(this), 1));
         insert(leaf);
         roots[padZero(getTree()[1])] = true;
     }
@@ -34,7 +37,7 @@ contract Miximus is MerkelTree {
 
         require(!nullifiers[reverse(bytes32(input[2]))]);
         require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input));
-        recipient.transfer(1 ether);
+        require(erc20.transferFrom(address(this), recipient, 1));
         nullifiers[padZero(reverse(bytes32(input[2])))] = true;
         Withdraw(recipient);
         return(recipient);
