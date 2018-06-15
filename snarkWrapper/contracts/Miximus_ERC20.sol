@@ -17,9 +17,6 @@ contract Miximus {
         bool instantiated;
         uint cur;
         bytes32[16] leaves;
-        mapping (bytes32 => bool) serials;
-        mapping (bytes32 => bool) roots;
-        bytes vk;
     }
 
     function insert(address _erc20Address, bytes32 com) internal returns (bool res) {
