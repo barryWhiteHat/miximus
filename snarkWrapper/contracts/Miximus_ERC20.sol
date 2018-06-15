@@ -1,20 +1,63 @@
 pragma solidity ^0.4.19;
 
-import "./MerkelTree.sol";
 import "./Verifier.sol";
 import "./ERC20/ERC20.sol";
 
-contract Miximus is MerkelTree {
+contract Miximus {
 
     struct MiximusTree {
         ERC20 ercInstance;
         bool instantiated;
         mapping (bytes32 => bool) roots;
         mapping (bytes32 => bool) nullifiers;
+        MTree mTree;
+    }
+
+    struct MTree {
+        bool instantiated;
+        uint cur;
+        bytes32[16] leaves;
+        mapping (bytes32 => bool) serials;
+        mapping (bytes32 => bool) roots;
+        bytes vk;
+    }
+
+    function insert(address _erc20Address, bytes32 com) internal returns (bool res) {
+        if (miximusTrees[_erc20Address].mTree.cur == 16) {
+            return false;
+        }
+        miximusTrees[_erc20Address].mTree.leaves[miximusTrees[_erc20Address].mTree.cur] = com;
+        miximusTrees[_erc20Address].mTree.cur++;
+        return true;
+    }
+
+    function getSha256(bytes32 input, bytes32 sk) constant returns ( bytes32) { 
+        return(sha256(input , sk)); 
+    } 
+
+    function getLeaves(address _erc20Address) constant returns (bytes32[16]) {
+        return miximusTrees[_erc20Address].mTree.leaves;
+    }
+
+    function getTree(address _erc20Address) constant returns (bytes32[32] tree) {
+        //bytes32[32] memory tree;
+        bytes32 test = 0;
+        uint i;
+        for (i = 0; i < 16; i++)
+            tree[16 + i] = miximusTrees[_erc20Address].mTree.leaves[i];
+        for (i = 16 - 1; i > 0; i--) {
+            tree[i] = sha256(tree[i*2], tree[i*2+1]); 
+        }
+        return tree;
+    }
+
+    //Merkletree.root()
+    function getRoot(address _erc20Address) constant returns(bytes32 root) {
+        root = getTree(_erc20Address)[1];
     }
     
     // erc20 to miximus
-    mapping (address => MiximusTree) public miximusTrees;
+    mapping (address => MiximusTree) miximusTrees;
 
     event Withdraw (address); 
     Verifier public zksnark_verify;
@@ -23,13 +66,14 @@ contract Miximus is MerkelTree {
     }
 
     function deposit (address _erc20Address, bytes32 leaf) payable  {
-        if(!miximusTrees[_erc20Address].instantiated) {
+        if(!miximusTrees[_erc20Address].instantiated || !miximusTrees[_erc20Address].mTree.instantiated) {
             miximusTrees[_erc20Address].ercInstance = ERC20(_erc20Address);
             miximusTrees[_erc20Address].instantiated = true;
+            miximusTrees[_erc20Address].mTree.instantiated = true;
         }
         require(miximusTrees[_erc20Address].ercInstance.transferFrom(msg.sender, address(this), 1));
-        insert(leaf);
-        miximusTrees[_erc20Address].roots[padZero(getTree()[1])] = true;
+        insert(_erc20Address, leaf);
+        miximusTrees[_erc20Address].roots[padZero(getTree(_erc20Address)[1])] = true;
     }
 
     function withdraw (
@@ -45,6 +89,7 @@ contract Miximus is MerkelTree {
             address _erc20Address
         ) returns (address) {
         require(miximusTrees[_erc20Address].instantiated);
+        require(miximusTrees[_erc20Address].mTree.instantiated);
         address recipient  = nullifierToAddress(reverse(bytes32(input[2])));      
         require(miximusTrees[_erc20Address].roots[reverse(bytes32(input[0]))]);
 
