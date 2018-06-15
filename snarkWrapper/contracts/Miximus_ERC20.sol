@@ -1,24 +1,35 @@
 pragma solidity ^0.4.19;
 
-import "MerkelTree.sol";
-import "Verifier.sol";
-import "ERC20.sol";
+import "./MerkelTree.sol";
+import "./Verifier.sol";
+import "./ERC20/ERC20.sol";
 
 contract Miximus is MerkelTree {
-    mapping (bytes32 => bool) roots;
-    mapping (bytes32 => bool) nullifiers;
+
+    struct MiximusTree {
+        ERC20 ercInstance;
+        bool instantiated;
+        mapping (bytes32 => bool) roots;
+        mapping (bytes32 => bool) nullifiers;
+    }
+    
+    // erc20 to miximus
+    mapping (address => MiximusTree) public miximusTrees;
+
     event Withdraw (address); 
     Verifier public zksnark_verify;
-    ERC20 public erc20;
-    function Miximus (address _zksnark_verify, address _erc20Address) {
+    function Miximus (address _zksnark_verify) {
         zksnark_verify = Verifier(_zksnark_verify);
-        erc20 = ERC20(_erc20Address);
     }
 
-    function deposit (bytes32 leaf) payable  {
-        require(erc20.transferFrom(msg.sender, address(this), 1));
+    function deposit (address _erc20Address, bytes32 leaf) payable  {
+        if(!miximusTrees[_erc20Address].instantiated) {
+            miximusTrees[_erc20Address].ercInstance = ERC20(_erc20Address);
+            miximusTrees[_erc20Address].instantiated = true;
+        }
+        require(miximusTrees[_erc20Address].ercInstance.transferFrom(msg.sender, address(this), 1));
         insert(leaf);
-        roots[padZero(getTree()[1])] = true;
+        miximusTrees[_erc20Address].roots[padZero(getTree()[1])] = true;
     }
 
     function withdraw (
@@ -30,15 +41,17 @@ contract Miximus is MerkelTree {
             uint[2] c_p,
             uint[2] h,
             uint[2] k,
-            uint[] input
+            uint[] input,
+            address _erc20Address
         ) returns (address) {
+        require(miximusTrees[_erc20Address].instantiated);
         address recipient  = nullifierToAddress(reverse(bytes32(input[2])));      
-        require(roots[reverse(bytes32(input[0]))]);
+        require(miximusTrees[_erc20Address].roots[reverse(bytes32(input[0]))]);
 
-        require(!nullifiers[reverse(bytes32(input[2]))]);
+        require(!miximusTrees[_erc20Address].nullifiers[reverse(bytes32(input[2]))]);
         require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input));
-        require(erc20.transferFrom(address(this), recipient, 1));
-        nullifiers[padZero(reverse(bytes32(input[2])))] = true;
+        require(miximusTrees[_erc20Address].ercInstance.transferFrom(address(this), recipient, 1));
+        miximusTrees[_erc20Address].nullifiers[padZero(reverse(bytes32(input[2])))] = true;
         Withdraw(recipient);
         return(recipient);
     }
