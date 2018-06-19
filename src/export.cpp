@@ -41,12 +41,8 @@
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp>
 
-
-
 using namespace libsnark;
 using namespace libff;
-
-
 
 
 template<typename FieldT>
@@ -140,26 +136,7 @@ void r1cs_to_json(protoboard<FieldT> pb, uint input_variables, std::string path)
 }
 
 template<typename FieldT>
-void exportInput(r1cs_primary_input<FieldT> input){
-    std::cout << "\ninput = [";
-    for (size_t i = 1; i < input.size(); ++i)
-    {
-        std::cout << input[i] << " , ";
-    }
-    std::cout << "];\n";
-
-}
-
-bool replace(std::string& str, const std::string& from, const std::string& to) {
-    size_t start_pos = str.find(from);
-    if(start_pos == std::string::npos)
-        return false;
-    str.replace(start_pos, from.length(), to);
-    return true;
-}
-
-template<typename FieldT>
-void proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_primary_input<FieldT> input) {
+string proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_primary_input<FieldT> input) {
     std::cout << "proof.A = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.g)<< ");" << endl;
     std::cout << "proof.A_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.h)<< ");" << endl;
     std::cout << "proof.B = Pairing.G2Point(" << outputPointG2AffineAsHex(proof.g_B.g)<< ");" << endl;
@@ -170,7 +147,7 @@ void proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_primary
     std::cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< endl; 
 
 
-    std::string path = "proof.json";
+    std::string path = "../zksnark_element/proof.json";
     std::stringstream ss;
     std::ofstream fh;
     fh.open(path, std::ios::binary);
@@ -192,9 +169,6 @@ void proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_primary
         if ( i < input.size() - 1 ) { 
             ss<< ", ";
         }
-
-
-
     }
     ss << "]\n";
 
@@ -212,10 +186,10 @@ void proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_primary
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
-
+    return(ss.str());
 }
 
-void buildVerificationContract(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair, std::string path ) {
+void vk2json(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair, std::string path ) {
 
     std::stringstream ss;
     std::ofstream fh;
@@ -245,10 +219,9 @@ void buildVerificationContract(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypa
     fh.flush();
     fh.close();
 }
-
 template<typename FieldT>
 //void dump_key(r1cs_constraint_system<FieldT> cs)
-void dump_key(protoboard<FieldT> pb, std::string path)
+char* dump_key(protoboard<FieldT> pb, std::string path)
 {
 
     r1cs_constraint_system<FieldT> constraints = pb.get_constraint_system();
@@ -258,8 +231,11 @@ void dump_key(protoboard<FieldT> pb, std::string path)
 
 
     r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair = generateKeypair(pb.get_constraint_system());
-    buildVerificationContract(keypair, "vk.json");
 
+    //save keys
+    vk2json(keypair, "vk.json");
+    writeToFile("../zksnark_element/pk.raw", keypair.pk);
+    writeToFile("../zksnark_element/vk.raw", keypair.vk);
 
     pb.primary_input();
     pb.auxiliary_input();
@@ -273,12 +249,18 @@ void dump_key(protoboard<FieldT> pb, std::string path)
     r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = r1cs_ppzksnark_prover<libff::alt_bn128_pp>(keypair.pk, primary_input, auxiliary_input);
 
 
-    proof_to_json (proof, primary_input);
+    auto json = proof_to_json (proof, primary_input);
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::out);
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
 
+    auto result = new char[json.size()];
+    memcpy(result, json.c_str(), json.size() + 1);
+    return result;
+
+
 }
+
 
