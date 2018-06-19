@@ -1,7 +1,7 @@
 pragma solidity ^0.4.19;
 
-import "MerkelTree.sol";
-import "Verifier.sol";
+import "../contracts/MerkelTree.sol";
+import "../contracts/Verifier.sol";
 
 contract Miximus is MerkelTree {
     mapping (bytes32 => bool) roots;
@@ -15,7 +15,7 @@ contract Miximus is MerkelTree {
     function deposit (bytes32 leaf) payable  {
         require(msg.value == 1 ether);
         insert(leaf);
-        roots[padZero(getTree()[1])] = true;
+        roots[padZero(getRoot())] = true;
     }
 
     function withdraw (
@@ -30,15 +30,31 @@ contract Miximus is MerkelTree {
             uint[] input
         ) returns (address) {
         address recipient  = nullifierToAddress(reverse(bytes32(input[2])));      
-        require(roots[reverse(bytes32(input[0]))]);
+        bytes32 root = padZero(reverse(bytes32(input[0]))); //)merge253bitWords(input[0], input[1]);
 
-        require(!nullifiers[reverse(bytes32(input[2]))]);
+        bytes32 nullifier = padZero(reverse(bytes32(input[2]))); //)merge253bitWords(input[2], input[3]);
+        
+        require(roots[root]);
+        require(!nullifiers[nullifier]);
+
         require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input));
-        recipient.transfer(1 ether);
-        nullifiers[padZero(reverse(bytes32(input[2])))] = true;
-        Withdraw(recipient);
+        nullifiers[nullifier] = true;
+        
+        uint fee = input[4];
+        require(fee < 1 ether); 
+        if (fee != 0 ) { 
+            msg.sender.transfer(fee);
+        }
+        
+        recipient.transfer(1 ether - fee);
+
+        Withdraw(recipient); 
         return(recipient);
     }
+
+    function isRoot(bytes32 root) constant returns(bool) {
+        return(roots[root]);
+    } 
 
     function nullifierToAddress(bytes32 source) returns(address) {
         bytes20[2] memory y = [bytes20(0), 0];
@@ -50,10 +66,38 @@ contract Miximus is MerkelTree {
         return(address(y[0]));
     }
 
+    // libshark only allows 253 bit chunks in its output
+    // to overcome this we merge the first 253 bits (left) with the remaining 3 bits
+    // in the next variable (right)
 
-    // hack to side step a libshark only allows 253 bit chunks in its output
-    // to overcome this we only validate the first 252 bits of the merkel root
-    // and the nullifier. We set the last byte to zero.
+    function merge253bitWords(uint left, uint right) returns(bytes32) {
+        right = pad3bit(right);
+        uint left_msb = uint(padZero(reverse(bytes32(left))));
+        uint left_lsb = uint(getZero(reverse(bytes32(left))));
+        right = right + left_lsb;
+        uint res = left_msb + right; 
+        return(bytes32(res));
+    }
+
+
+    // ensure that the 3 bits on the left is actually 3 bits.
+    function pad3bit(uint input) constant returns(uint) {
+        if (input == 0) 
+            return 0;
+        if (input == 1)
+            return 4;
+        if (input == 2)
+            return 4;
+        if (input == 3)
+            return 6;
+        return(input);
+    }
+
+    function getZero(bytes32 x) returns(bytes32) {
+                 //0x1111111111111111111111113fdc3192693e28ff6aee95320075e4c26be03308
+        return(x & 0x000000000000000000000000000000000000000000000000000000000000000F);
+    }
+
     function padZero(bytes32 x) returns(bytes32) {
                  //0x1111111111111111111111113fdc3192693e28ff6aee95320075e4c26be03308
         return(x & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0);
