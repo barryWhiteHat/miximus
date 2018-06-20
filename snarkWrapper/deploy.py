@@ -14,16 +14,24 @@ import random
 from ctypes import cdll
 import ctypes as c
 
+tree_depth = 29
 lib = cdll.LoadLibrary('../build/src/libmiximus.so')
 #lib = cdll.LoadLibrary('../../test_merkel_tree/build/src/libmiximus.so')
 
 prove = lib.prove
 prove.restype = c.c_char_p;
 #prove.argtypes = [c.POINTER(c.POINTER(c.c_bool*256))]
-tree_depth = 29
+
 prove.argtypes = [((c.c_bool*256)*(tree_depth + 3)), c.c_int, ((c.c_bool*tree_depth)), c.c_int] 
 genKeys = lib.genKeys
-genKeys.argtypes = [c.c_int]
+genKeys.argtypes = [c.c_int, c.c_char_p, c.c_char_p]
+
+helloWorld = lib.helloWorld
+
+helloWorld.restype = c.c_char_p;
+helloWorld.argtypes = [c.c_char_p];
+
+
 
 
 w3 = Web3(HTTPProvider("http://localhost:8545"));
@@ -48,9 +56,9 @@ def compile(tree_depth):
     return(miximus_interface, verifier_interface)
    
 
-def deploy(tree_depth):
+def deploy(tree_depth, vk_dir):
     miximus_interface , verifier_interface  = compile(tree_depth)
-    with open('../zksnark_element/vk.json') as json_data:
+    with open(vk_dir) as json_data:
         vk = json.load(json_data)
 
 
@@ -115,8 +123,12 @@ def bytesToBinary(hexString):
         out += bin(byte)[2:].rjust(8,"0")
     out = [int(x) for x in out] 
     return((c.c_bool*256)(*out))
+    pk = "asdf"
 
-def genWitness(miximus, nullifier, sk, address, tree_depth, fee):
+def genhelloWorld(pk_dir):
+     pk = helloWorld(c.c_char_p(pk_dir.encode()))
+    
+def genWitness(miximus, nullifier, sk, address, tree_depth, fee, pk_dir):
 
     path = []
     address_bits = []
@@ -160,11 +172,10 @@ def genWitness(miximus, nullifier, sk, address, tree_depth, fee):
 
     print(address)
     print( w3.toHex(root))
-  
-    try: 
-        pk = prove(path, address, address_bits, tree_depth, c.c_int(fee))
-    except:
-        pdb.set_trace()
+
+    pk = prove(path, address, address_bits, tree_depth, c.c_int(fee),  c.c_char_p(pk_dir.encode()))
+
+
 
     pk = json.loads(pk.decode("utf-8"))
     pk["a"] = hex2int(pk["a"])

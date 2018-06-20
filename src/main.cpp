@@ -146,18 +146,18 @@ public:
         ml->generate_r1cs_constraints();
     }
 
-    void writeKeysToFile() {
+    void writeKeysToFile(char* pk , char* vk) {
         r1cs_constraint_system<FieldT> constraints = this->pb.get_constraint_system();
 
         r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair = generateKeypair(this->pb.get_constraint_system());
 
         //save keys
-        vk2json(keypair, "../zksnark_element/vk.json");
-        writeToFile("../zksnark_element/pk.raw", keypair.pk);
-        writeToFile("../zksnark_element/vk.raw", keypair.vk); 
+        vk2json(keypair, vk);
+
+        writeToFile(pk, keypair.pk); 
     }
 
-    char* prove(std::vector<merkle_authentication_node> path, int address, libff::bit_vector address_bits , libff::bit_vector nullifier , libff::bit_vector secret , libff::bit_vector root, int fee) { 
+    char* prove(std::vector<merkle_authentication_node> path, int address, libff::bit_vector address_bits , libff::bit_vector nullifier , libff::bit_vector secret , libff::bit_vector root, int fee, char* pk) { 
         // generate witness
         //unpacker->generate_r1cs_constraints(false);
         //std::vector<merkle_authentication_node> path(tree_depth);
@@ -189,7 +189,7 @@ public:
 
 
         r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair;
-        keypair.pk = loadFromFile<r1cs_ppzksnark_proving_key<alt_bn128_pp>> ("../zksnark_element/pk.raw");
+        keypair.pk = loadFromFile<r1cs_ppzksnark_proving_key<alt_bn128_pp>> (pk);
 
 
         pb.primary_input();
@@ -207,13 +207,20 @@ public:
     }
 };
 
-void genKeys(int tree_depth) {
+void genKeys(int tree_depth, char* pkOutput, char* vkOuput) {
+
     libff::alt_bn128_pp::init_public_params();
     Miximus<FieldT, sha256_ethereum> c (tree_depth);
-    c.writeKeysToFile();
+    c.writeKeysToFile(pkOutput, vkOuput );
 }
 
-char* prove(bool _path[][256], int _address, bool _address_bits[], int tree_depth, int fee) { 
+void helloWorld( char* input) { 
+
+    std::cout << input << std::endl;
+
+}
+
+char* prove(bool _path[][256], int _address, bool _address_bits[], int tree_depth, int fee, char* pk) { 
 
     libff::alt_bn128_pp::init_public_params();
     libff::bit_vector init(0,256);
@@ -256,6 +263,6 @@ char* prove(bool _path[][256], int _address, bool _address_bits[], int tree_dept
     libff::alt_bn128_pp::init_public_params();
     Miximus<FieldT, sha256_ethereum> c(tree_depth);
 
-    auto out = c.prove(path, address , address_bits, _nullifier, _secret, _root, fee);
+    auto out = c.prove(path, address , address_bits, _nullifier, _secret, _root, fee, pk);
     return(out);
 }

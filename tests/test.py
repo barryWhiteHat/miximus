@@ -6,10 +6,13 @@ from deploy import *
 
 if __name__ == "__main__":
     tree_depth = 29
-    #genKeys(c.c_int(tree_depth))
+    pk_output = "../zksnark_element/pk.raw"
+    vk_output = "../zksnark_element/vk.json"
 
-    miximus = deploy(tree_depth)
+    genKeys(c.c_int(tree_depth), c.c_char_p(pk_output.encode()) , c.c_char_p(vk_output.encode())) 
 
+
+    miximus = deploy(tree_depth, vk_output)
     for j in range (0,16):
 
         nullifiers = []
@@ -29,9 +32,9 @@ if __name__ == "__main__":
                 pdb.set_trace()
 
         for i, (nullifier , sk) in enumerate(zip(nullifiers, sks)):
-            pk = genWitness(miximus, nullifier, sk, i + j, tree_depth, fee)
-    
-            try:
-                withdraw(miximus, pk)
-            except:
-                pdb.set_trace()
+
+            pk = genWitness(miximus, nullifier, sk, i + j, tree_depth, fee, "../zksnark_element/pk.raw")   
+            withdraw(miximus, pk)
+           
+          
+   
