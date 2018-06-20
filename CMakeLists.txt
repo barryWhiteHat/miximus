@@ -86,7 +86,7 @@ endif()
 
 
 add_definitions(-DDEBUG=1)
-
+add_compile_options(-fPIC)
 
 if("${CPPDEBUG}")
   add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)

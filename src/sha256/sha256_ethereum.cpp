@@ -19,7 +19,8 @@ using namespace libff;
 
 using std::vector;
 
-typedef libff::Fr<libff::default_ec_pp> FieldT;
+//typedef libff::Fr<libff::default_ec_pp> FieldT;
+typedef libff::Fr<alt_bn128_pp> FieldT;
 
 pb_variable_array<FieldT> from_bits(std::vector<bool> bits, pb_variable<FieldT>& ZERO) {
     pb_variable_array<FieldT> acc;
