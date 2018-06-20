@@ -36,6 +36,7 @@ helloWorld.argtypes = [c.c_char_p];
 
 w3 = Web3(HTTPProvider("http://localhost:8545"));
 
+
 def hex2int(elements):
     ints = []
     for el in elements:
@@ -84,14 +85,15 @@ def deploy(tree_depth, vk_dir):
     # Get transaction hash from deployed contract
     tx_hash = verifier.deploy(args=vk, transaction={'from': w3.eth.accounts[0], 'gas': 4000000})
     # Get tx receipt to get contract address
-    tx_receipt = w3.eth.getTransactionReceipt(tx_hash)
+
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
     verifier_address = tx_receipt['contractAddress']
 
 
     tx_hash = miximus.deploy(transaction={'from': w3.eth.accounts[0], 'gas': 4000000}, args=[verifier_address])
 
     # Get tx receipt to get contract address
-    tx_receipt = w3.eth.getTransactionReceipt(tx_hash)
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
     miximus_address = tx_receipt['contractAddress']
 
     # Contract instance in concise mode
@@ -109,12 +111,15 @@ def deposit(miximus, nullifier, sk, depositAddress):
     print ("leaf: " , w3.toHex(leaf))
     print ("null: " , nullifier, "sk: " , sk)
 
-    index = miximus.deposit( leaf, transact={'from': depositAddress, 'gas': 4000000, "value":w3.toWei(1, "ether")})
-    return(int(w3.eth.getTransactionReceipt(index)["logs"][0]["data"], 16))
+    tx_hash = miximus.deposit( leaf, transact={'from': depositAddress, 'gas': 4000000, "value":w3.toWei(1, "ether")})
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    return(int(tx_receipt["logs"][0]["data"], 16))
 
 def withdraw(miximus, pk):
     print( w3.eth.getBalance(miximus.address))
-    miximus.withdraw(pk["a"] , pk["a_p"], pk["b"], pk["b_p"] , pk["c"], pk["c_p"] , pk["h"] , pk["k"], pk["input"] , transact={'from': w3.eth.accounts[0], 'gas': 4000000})
+    tx_hash = miximus.withdraw(pk["a"] , pk["a_p"], pk["b"], pk["b_p"] , pk["c"], pk["c_p"] , pk["h"] , pk["k"], pk["input"] , transact={'from': w3.eth.accounts[0], 'gas': 4000000})
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+
     print( w3.eth.getBalance(miximus.address))
 
 def bytesToBinary(hexString):
