@@ -9,10 +9,10 @@ w3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 if __name__ == "__main__":
     tree_depth = 29
-    vk_output = "../zksnark_element/vk_rinkby.json"
-    miximus = deploy(tree_depth, vk_output)   
+
+
     deployedAddress = "0xB586453a8e44c86E012958E48a0DeCED462BD16e" 
-    print (miximus.address
+
       
     miximus_interface , verifier_interface  = compile(tree_depth)
 
