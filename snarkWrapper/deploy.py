@@ -86,14 +86,14 @@ def deploy(tree_depth, vk_dir):
     tx_hash = verifier.deploy(args=vk, transaction={'from': w3.eth.accounts[0], 'gas': 4000000})
     # Get tx receipt to get contract address
 
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
     verifier_address = tx_receipt['contractAddress']
 
 
     tx_hash = miximus.deploy(transaction={'from': w3.eth.accounts[0], 'gas': 4000000}, args=[verifier_address])
 
     # Get tx receipt to get contract address
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
     miximus_address = tx_receipt['contractAddress']
 
     # Contract instance in concise mode
@@ -112,13 +112,13 @@ def deposit(miximus, nullifier, sk, depositAddress):
     print ("null: " , nullifier, "sk: " , sk)
 
     tx_hash = miximus.deposit( leaf, transact={'from': depositAddress, 'gas': 4000000, "value":w3.toWei(1, "ether")})
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
     return(int(tx_receipt["logs"][0]["data"], 16))
 
 def withdraw(miximus, pk):
     print( w3.eth.getBalance(miximus.address))
     tx_hash = miximus.withdraw(pk["a"] , pk["a_p"], pk["b"], pk["b_p"] , pk["c"], pk["c_p"] , pk["h"] , pk["k"], pk["input"] , transact={'from': w3.eth.accounts[0], 'gas': 4000000})
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
 
     print( w3.eth.getBalance(miximus.address))
 
