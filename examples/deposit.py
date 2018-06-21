@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
 
 
-    print("Ether was deposited, file %s.json was craeted this contains information for miximus to withdraw your funds. Its important that you backup this file. \
-          anyone who can see this file will be able to deanonamize you. But they will not be able to steal your funds."% str(index))
+    print("Ether was deposited, file %s.json was created this contains information for miximus to withdraw your funds. Its important that you backup this file. \
+          anyone who can see this file will be able to deanonymize you. But they will not be able to steal your funds."% str(index))
 
     
