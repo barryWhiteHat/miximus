@@ -1,3 +1,10 @@
+/*    
+    copyright 2018 to the ZoKrates Authors
+*/
+
+
+
+
 pragma solidity ^0.4.19;
 
 import "../contracts/Pairing.sol";
