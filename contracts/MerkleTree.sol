@@ -1,6 +1,4 @@
 contract MerkleTree {
-    mapping (bytes32 => bool) public serials;
-    mapping (bytes32 => bool) public roots;
     uint public tree_depth = 29;
     uint public no_leaves = 536870912;
     struct Mtree {
