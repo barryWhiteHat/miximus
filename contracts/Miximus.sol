@@ -1,21 +1,35 @@
 pragma solidity ^0.4.19;
 
+import "../contracts/ERC20.sol";
 import "../contracts/MerkleTree.sol";
 import "../contracts/Verifier.sol";
 
-contract Miximus is MerkleTree {
-    mapping (bytes32 => bool) roots;
-    mapping (bytes32 => bool) nullifiers;
+contract Miximus {
+
+    struct Mixer {
+        Mtree MT;
+        mapping (bytes32 => bool) roots;
+        mapping (bytes32 => bool) nullifiers;
+    }
+
+    // address(0x0) means mixing Ether
+    mapping(address => Mixer) mixers;
+
     event Withdraw (address); 
     Verifier public zksnark_verify;
     function Miximus (address _zksnark_verify) {
         zksnark_verify = Verifier(_zksnark_verify);
     }
 
-    function deposit (bytes32 leaf) payable  {
-        require(msg.value == 1 ether);
-        insert(leaf);
-        roots[padZero(getRoot())] = true;
+    function deposit (address _tokenAddress, bytes32 leaf) payable  {
+        if(address(0x0) == _tokenAddress) {
+            require(msg.value == 1 ether);
+        }
+        else {
+            require(ERC20(_tokenAddress).transferFrom(msg.sender, address(this), 1));
+        }
+        insert(mixers[_tokenAddress].MT, leaf);
+        mixers[_tokenAddress].roots[padZero(getRoot(mixers[_tokenAddress].MT))] = true;
     }
 
     function withdraw (
@@ -27,26 +41,33 @@ contract Miximus is MerkleTree {
             uint[2] c_p,
             uint[2] h,
             uint[2] k,
-            uint[] input
+            uint[] input,
+            address _tokenAddress
         ) returns (address) {
         address recipient  = nullifierToAddress(reverse(bytes32(input[2])));      
         bytes32 root = padZero(reverse(bytes32(input[0]))); //)merge253bitWords(input[0], input[1]);
 
         bytes32 nullifier = padZero(reverse(bytes32(input[2]))); //)merge253bitWords(input[2], input[3]);
         
-        require(roots[root]);
-        require(!nullifiers[nullifier]);
+        require(mixers[_tokenAddress].roots[root]);
+        require(!mixers[_tokenAddress].nullifiers[nullifier]);
 
         require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input));
-        nullifiers[nullifier] = true;
+        mixers[_tokenAddress].nullifiers[nullifier] = true;
         
-        uint fee = input[4];
-        require(fee < 1 ether); 
-        if (fee != 0 ) { 
-            msg.sender.transfer(fee);
+
+        if(_tokenAddress == address(0x0)){
+            uint fee = input[4];
+            require(fee < 1 ether); 
+            if (fee != 0 ) { 
+                msg.sender.transfer(fee);
+            }
+            recipient.transfer(1 ether - fee);
         }
-        
-        recipient.transfer(1 ether - fee);
+        else {
+            // TODO: fee?
+            require(ERC20(_tokenAddress).transfer(msg.sender, 1));
+        }      
 
         Withdraw(recipient); 
         return(recipient);
