@@ -52,10 +52,6 @@ contract Miximus is MerkleTree {
         return(recipient);
     }
 
-    function isRoot(bytes32 root) constant returns(bool) {
-        return(roots[root]);
-    } 
-
     function nullifierToAddress(bytes32 source) returns(address) {
         bytes20[2] memory y = [bytes20(0), 0];
         assembly {

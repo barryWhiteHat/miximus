@@ -14,7 +14,7 @@ contract MerkleTree {
     function insert(bytes32 com) internal returns (bool res) {
         require (MT.cur != no_leaves - 1);
         MT.leaves2[0][MT.cur] = com;
-        updateTree();
+        updateTree(); // TODO: this is expensive
         leafAdded(MT.cur);
         MT.cur++;
    
@@ -70,11 +70,6 @@ contract MerkleTree {
             CurrentIndex = NextIndex;
         }
         return MT.leaves2[tree_depth][0];
-    }
-    
-   
-    function getLeaf(uint j,uint k) constant returns (bytes32 root) {
-        root = MT.leaves2[j][k];
     }
 
     function getRoot() constant returns(bytes32 root) {
