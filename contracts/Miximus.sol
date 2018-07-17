@@ -27,8 +27,8 @@ contract Miximus {
         else {
             require(ERC20(_tokenAddress).transferFrom(msg.sender, address(this), 1));
         }
-        insert(mixers[_tokenAddress].MT, leaf);
-        mixers[_tokenAddress].roots[padZero(getRoot(mixers[_tokenAddress].MT))] = true;
+        insert(_tokenAddress, leaf);
+        mixers[_tokenAddress].roots[padZero(getRoot(_tokenAddress))] = true;
     }
 
     function withdraw (
@@ -170,10 +170,10 @@ contract Miximus {
         for (uint i=0 ; i < tree_depth; i++) {
             address_bits[i] = index%2;
             if (index%2 == 0) {
-                MerkleProof[i] = getUniqueLeaf(_tokenAddress, MT.leaves2[i][index + 1],i);
+                MerkleProof[i] = getUniqueLeaf(MT.leaves2[i][index + 1],i);
             }
             else {
-                MerkleProof[i] = getUniqueLeaf(_tokenAddress, MT.leaves2[i][index - 1],i);
+                MerkleProof[i] = getUniqueLeaf(MT.leaves2[i][index - 1],i);
             }
             index = uint(index/2);
         }
@@ -202,9 +202,9 @@ contract Miximus {
             uint NextIndex = uint(CurrentIndex/2);
             if (CurrentIndex%2 == 0) {
                 leaf1 =  MT.leaves2[i][CurrentIndex];
-                leaf2 = getUniqueLeaf(_tokenAddress, MT.leaves2[i][CurrentIndex + 1], i);
+                leaf2 = getUniqueLeaf(MT.leaves2[i][CurrentIndex + 1], i);
             } else {
-                leaf1 = getUniqueLeaf(_tokenAddress, MT.leaves2[i][CurrentIndex - 1], i);
+                leaf1 = getUniqueLeaf(MT.leaves2[i][CurrentIndex - 1], i);
                 leaf2 =  MT.leaves2[i][CurrentIndex];
             }
             MT.leaves2[i+1][NextIndex] = (sha256( leaf1, leaf2));
