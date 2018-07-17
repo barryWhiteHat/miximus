@@ -1,21 +1,34 @@
 pragma solidity ^0.4.19;
 
-import "../contracts/MerkelTree.sol";
+import "../contracts/ERC20.sol";
 import "../contracts/Verifier.sol";
 
-contract Miximus is MerkelTree {
-    mapping (bytes32 => bool) roots;
-    mapping (bytes32 => bool) nullifiers;
+contract Miximus {
+
+    struct Mixer {
+        Mtree MT;
+        mapping (bytes32 => bool) roots;
+        mapping (bytes32 => bool) nullifiers;
+    }
+
+    // address(0x0) means mixing Ether
+    mapping(address => Mixer) mixers;
+
     event Withdraw (address); 
     Verifier public zksnark_verify;
     function Miximus (address _zksnark_verify) {
         zksnark_verify = Verifier(_zksnark_verify);
     }
 
-    function deposit (bytes32 leaf) payable  {
-        require(msg.value == 1 ether);
-        insert(leaf);
-        roots[padZero(getRoot())] = true;
+    function deposit (address _tokenAddress, bytes32 leaf) payable  {
+        if(address(0x0) == _tokenAddress) {
+            require(msg.value == 1 ether);
+        }
+        else {
+            require(ERC20(_tokenAddress).transferFrom(msg.sender, address(this), 1));
+        }
+        insert(_tokenAddress, leaf);
+        mixers[_tokenAddress].roots[padZero(getRoot(_tokenAddress))] = true;
     }
 
     function withdraw (
@@ -27,34 +40,37 @@ contract Miximus is MerkelTree {
             uint[2] c_p,
             uint[2] h,
             uint[2] k,
-            uint[] input
+            uint[] input,
+            address _tokenAddress
         ) returns (address) {
-        address recipient  = nullifierToAddress(reverse(bytes32(input[2])));      
+        address recipient  = nullifierToAddress(reverse(bytes32(input[2])));
         bytes32 root = padZero(reverse(bytes32(input[0]))); //)merge253bitWords(input[0], input[1]);
 
         bytes32 nullifier = padZero(reverse(bytes32(input[2]))); //)merge253bitWords(input[2], input[3]);
         
-        require(roots[root]);
-        require(!nullifiers[nullifier]);
+        require(mixers[_tokenAddress].roots[root]);
+        require(!mixers[_tokenAddress].nullifiers[nullifier]);
 
         require(zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input));
-        nullifiers[nullifier] = true;
+        mixers[_tokenAddress].nullifiers[nullifier] = true;
         
-        uint fee = input[4];
-        require(fee < 1 ether); 
-        if (fee != 0 ) { 
-            msg.sender.transfer(fee);
+
+        if(_tokenAddress == address(0x0)){
+            // uint fee = input[4];
+            // require(fee < 1 ether); 
+            // if (fee != 0 ) { 
+            //     msg.sender.transfer(fee);
+            // }
+            recipient.transfer(1 ether); // - fee);
         }
-        
-        recipient.transfer(1 ether - fee);
+        else {
+            // TODO: fee?
+            require(ERC20(_tokenAddress).transfer(msg.sender, 1));
+        }      
 
         Withdraw(recipient); 
         return(recipient);
     }
-
-    function isRoot(bytes32 root) constant returns(bool) {
-        return(roots[root]);
-    } 
 
     function nullifierToAddress(bytes32 source) returns(address) {
         bytes20[2] memory y = [bytes20(0), 0];
@@ -120,6 +136,86 @@ contract Miximus is MerkelTree {
             r += b << (i*8);
         }
         return bytes32(r);
+    }
+
+
+    // MerkleTree
+    uint public tree_depth = 29;
+    uint public no_leaves = 536870912;
+    struct Mtree {
+        uint cur;
+        bytes32[536870912][30] leaves2;
+    }
+
+    event leafAdded(uint index);
+
+    //Merkletree.append(com)
+    function insert(address _tokenAddress, bytes32 com) internal returns (bool res) {
+        Mtree MT = mixers[_tokenAddress].MT;
+        require (MT.cur != no_leaves - 1);
+        MT.leaves2[0][MT.cur] = com;
+        updateTree(_tokenAddress); // TODO: this is expensive
+        leafAdded(MT.cur);
+        MT.cur++;
+   
+        return true;
+    }
+
+
+    function getMerkleProof(address _tokenAddress, uint index) constant returns (bytes32[29], uint[29]) {
+        Mtree MT = mixers[_tokenAddress].MT;
+        uint[29] memory address_bits;
+        bytes32[29] memory MerkleProof;
+
+        for (uint i=0 ; i < tree_depth; i++) {
+            address_bits[i] = index%2;
+            if (index%2 == 0) {
+                MerkleProof[i] = getUniqueLeaf(MT.leaves2[i][index + 1],i);
+            }
+            else {
+                MerkleProof[i] = getUniqueLeaf(MT.leaves2[i][index - 1],i);
+            }
+            index = uint(index/2);
+        }
+        return(MerkleProof, address_bits);   
+    }
+    
+     function getSha256(bytes32 input, bytes32 sk) constant returns ( bytes32) { 
+        return(sha256(input , sk)); 
+    }
+
+    function getUniqueLeaf(bytes32 leaf, uint depth) returns (bytes32) {
+        if (leaf == 0x0) {
+            for (uint i=0;i<depth;i++) {
+                leaf = sha256(leaf, leaf);
+            }
+        }
+        return(leaf);
+    }
+    
+    function updateTree(address _tokenAddress) internal returns(bytes32 root) {
+        Mtree MT = mixers[_tokenAddress].MT;
+        uint CurrentIndex = MT.cur;
+        bytes32 leaf1;
+        bytes32 leaf2;
+        for (uint i=0 ; i < tree_depth; i++) {
+            uint NextIndex = uint(CurrentIndex/2);
+            if (CurrentIndex%2 == 0) {
+                leaf1 =  MT.leaves2[i][CurrentIndex];
+                leaf2 = getUniqueLeaf(MT.leaves2[i][CurrentIndex + 1], i);
+            } else {
+                leaf1 = getUniqueLeaf(MT.leaves2[i][CurrentIndex - 1], i);
+                leaf2 =  MT.leaves2[i][CurrentIndex];
+            }
+            MT.leaves2[i+1][NextIndex] = (sha256( leaf1, leaf2));
+            CurrentIndex = NextIndex;
+        }
+        return MT.leaves2[tree_depth][0];
+    }
+
+    function getRoot(address _tokenAddress) constant returns(bytes32 root) {
+        Mtree MT = mixers[_tokenAddress].MT;
+        root = MT.leaves2[tree_depth][0];
     }
 
 }

@@ -32,7 +32,7 @@ get dependencies `git submodule update --init --recursive`
 Finally you will need to download the ~400MB proving key from [here](https://github.com/barryWhiteHat/miximus/releases/download/untagged-5e043815d553302be2d2/rinkeby_vk_pk.tar.gz), unzip it and save it in the `./zksnark_element` directory.
 
 ### Running the tests
-Start your prefered ethereum node, `cd tests` and run `python3 test.py` This will 
+Start your prefered ethereum node, `cd tests`, install the requirements `pip3 install -r requirements.txt` and run `python3 test.py` This will 
 1. Generate verification keys, proving keys, This step takes a lot of ram and its likely your OS will kill it if you have a bunch of windows open.
 2. deploy the contract
 3. Deposit 32 ether in 1 ether chunks.

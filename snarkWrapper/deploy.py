@@ -45,11 +45,12 @@ def hex2int(elements):
 
 def compile(tree_depth):
     miximus = "../contracts/Miximus.sol"
-    MerkelTree = "../contracts/MerkelTree.sol"  
     Pairing =  "../contracts/Pairing.sol"
+    ERC20 =  "../contracts/ERC20.sol"
+    ERC20Basic =  "../contracts/ERC20Basic.sol"
     Verifier = "../contracts/Verifier.sol"
 
-    compiled_sol =  compile_files([Pairing, MerkelTree, Pairing, Verifier, miximus], allow_paths="./contracts")
+    compiled_sol =  compile_files([Pairing, ERC20, ERC20Basic, Pairing, Verifier, miximus], allow_paths="./contracts")
 
     miximus_interface = compiled_sol[miximus + ':Miximus']
     verifier_interface = compiled_sol[Verifier + ':Verifier']
@@ -110,14 +111,15 @@ def deposit(miximus, nullifier, sk, depositAddress):
     leaf = miximus.getSha256(nullifier, sk)
     print ("leaf: " , w3.toHex(leaf))
     print ("null: " , nullifier, "sk: " , sk)
-
-    tx_hash = miximus.deposit( leaf, transact={'from': depositAddress, 'gas': 4000000, "value":w3.toWei(1, "ether")})
+    token_address = '0x0000000000000000000000000000000000000000'
+    tx_hash = miximus.deposit( token_address, leaf, transact={'from': depositAddress, 'gas': 4000000, "value":w3.toWei(1, "ether")})
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
     return(int(tx_receipt["logs"][0]["data"], 16))
 
 def withdraw(miximus, pk):
+    token_address = '0x0000000000000000000000000000000000000000'
     print( w3.eth.getBalance(miximus.address))
-    tx_hash = miximus.withdraw(pk["a"] , pk["a_p"], pk["b"], pk["b_p"] , pk["c"], pk["c_p"] , pk["h"] , pk["k"], pk["input"] , transact={'from': w3.eth.accounts[0], 'gas': 4000000})
+    tx_hash = miximus.withdraw(pk["a"] , pk["a_p"], pk["b"], pk["b_p"] , pk["c"], pk["c_p"] , pk["h"] , pk["k"], pk["input"], token_address, transact={'from': w3.eth.accounts[0], 'gas': 4000000})
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash, 10000)
 
     print( w3.eth.getBalance(miximus.address))
@@ -134,14 +136,14 @@ def genhelloWorld(pk_dir):
      pk = helloWorld(c.c_char_p(pk_dir.encode()))
     
 def genWitness(miximus, nullifier, sk, address, tree_depth, fee, pk_dir):
-
+    token_address = '0x0000000000000000000000000000000000000000'
     path = []
     address_bits = []
     #tree = miximus.getTree()
     #tree_hex = [w3.toHex(x) for x in tree]
-    root = miximus.getRoot()
+    root = miximus.getRoot(token_address)
 
-    path1, address_bits1 = miximus.getMerkelProof(address, call={"gas":500000})
+    path1, address_bits1 = miximus.getMerkleProof(token_address, address, call={"gas":500000})
     '''
     for i in range (0 , tree_depth):
         address_bits.append(address%2)

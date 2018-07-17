@@ -1,0 +1,3 @@
+py-solc
+web3
+bitstring
