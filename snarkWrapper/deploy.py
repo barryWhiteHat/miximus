@@ -46,9 +46,11 @@ def hex2int(elements):
 def compile(tree_depth):
     miximus = "../contracts/Miximus.sol"
     Pairing =  "../contracts/Pairing.sol"
+    ERC20 =  "../contracts/ERC20.sol"
+    ERC20Basic =  "../contracts/ERC20Basic.sol"
     Verifier = "../contracts/Verifier.sol"
 
-    compiled_sol =  compile_files([Pairing, MerkleTree, Pairing, Verifier, miximus], allow_paths="./contracts")
+    compiled_sol =  compile_files([Pairing, ERC20, ERC20Basic, Pairing, Verifier, miximus], allow_paths="./contracts")
 
     miximus_interface = compiled_sol[miximus + ':Miximus']
     verifier_interface = compiled_sol[Verifier + ':Verifier']
