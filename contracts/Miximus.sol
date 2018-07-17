@@ -56,12 +56,12 @@ contract Miximus {
         
 
         if(_tokenAddress == address(0x0)){
-            uint fee = input[4];
-            require(fee < 1 ether); 
-            if (fee != 0 ) { 
-                msg.sender.transfer(fee);
-            }
-            recipient.transfer(1 ether - fee);
+            // uint fee = input[4];
+            // require(fee < 1 ether); 
+            // if (fee != 0 ) { 
+            //     msg.sender.transfer(fee);
+            // }
+            recipient.transfer(1 ether); // - fee);
         }
         else {
             // TODO: fee?
