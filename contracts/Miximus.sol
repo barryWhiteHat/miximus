@@ -1,9 +1,9 @@
 pragma solidity ^0.4.19;
 
-import "../contracts/MerkelTree.sol";
+import "../contracts/MerkleTree.sol";
 import "../contracts/Verifier.sol";
 
-contract Miximus is MerkelTree {
+contract Miximus is MerkleTree {
     mapping (bytes32 => bool) roots;
     mapping (bytes32 => bool) nullifiers;
     event Withdraw (address); 
