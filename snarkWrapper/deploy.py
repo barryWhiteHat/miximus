@@ -45,11 +45,11 @@ def hex2int(elements):
 
 def compile(tree_depth):
     miximus = "../contracts/Miximus.sol"
-    MerkelTree = "../contracts/MerkelTree.sol"  
+    MerkleTree = "../contracts/MerkleTree.sol"  
     Pairing =  "../contracts/Pairing.sol"
     Verifier = "../contracts/Verifier.sol"
 
-    compiled_sol =  compile_files([Pairing, MerkelTree, Pairing, Verifier, miximus], allow_paths="./contracts")
+    compiled_sol =  compile_files([Pairing, MerkleTree, Pairing, Verifier, miximus], allow_paths="./contracts")
 
     miximus_interface = compiled_sol[miximus + ':Miximus']
     verifier_interface = compiled_sol[Verifier + ':Verifier']
@@ -141,7 +141,7 @@ def genWitness(miximus, nullifier, sk, address, tree_depth, fee, pk_dir):
     #tree_hex = [w3.toHex(x) for x in tree]
     root = miximus.getRoot()
 
-    path1, address_bits1 = miximus.getMerkelProof(address, call={"gas":500000})
+    path1, address_bits1 = miximus.getMerkleProof(address, call={"gas":500000})
     '''
     for i in range (0 , tree_depth):
         address_bits.append(address%2)

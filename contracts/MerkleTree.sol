@@ -1,4 +1,4 @@
-contract MerkelTree {
+contract MerkleTree {
     mapping (bytes32 => bool) public serials;
     mapping (bytes32 => bool) public roots;
     uint public tree_depth = 29;
@@ -24,22 +24,22 @@ contract MerkelTree {
     }
 
 
-    function getMerkelProof(uint index) constant returns (bytes32[29], uint[29]) {
+    function getMerkleProof(uint index) constant returns (bytes32[29], uint[29]) {
 
         uint[29] memory address_bits;
-        bytes32[29] memory merkelProof;
+        bytes32[29] memory merkleProof;
 
         for (uint i=0 ; i < tree_depth; i++) {
             address_bits[i] = index%2;
             if (index%2 == 0) {
-                merkelProof[i] = getUniqueLeaf(MT.leaves2[i][index + 1],i);
+                merkleProof[i] = getUniqueLeaf(MT.leaves2[i][index + 1],i);
             }
             else {
-                merkelProof[i] = getUniqueLeaf(MT.leaves2[i][index - 1],i);
+                merkleProof[i] = getUniqueLeaf(MT.leaves2[i][index - 1],i);
             }
             index = uint(index/2);
         }
-        return(merkelProof, address_bits);   
+        return(merkleProof, address_bits);   
     }
     
      function getSha256(bytes32 input, bytes32 sk) constant returns ( bytes32) { 
