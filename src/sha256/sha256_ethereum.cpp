@@ -1,4 +1,9 @@
-//https://gist.github.com/kobigurk/24c25e68219df87c348f1a78db51bb52
+/*    
+    copyright 2018 to the Kobigurk 
+    https://github.com/kobigurk/sha256_ethereum
+    MIT
+*/
+
 
 #include <iostream>
 

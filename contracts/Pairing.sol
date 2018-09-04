@@ -1,3 +1,10 @@
+/*    
+    copyright 2018 to the ZoKrates Authors
+*/
+
+
+
+
 library Pairing {
     struct G1Point {
         uint X;
