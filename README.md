@@ -50,7 +50,7 @@ a files of the forum `%d.json` where `%d` is the merkel tree index of your commi
 it will drop to pdb debugger.
 
 ## Layer 2 transaction abstraction
-A major problem in the current system is who pays for the gas for the withdrawal. While the prefect solution to this is to allow the smart contract 
+A major problem in the current system is who pays for the gas for the withdrawal. While the perfect solution to this is to allow the smart contract 
 to pay for gas. This is not possible at the moment. There for we provide layer two transaction abstraction where a depositor can define a fee that 
 gets paid to whoever pays the gas of a transaction. Future work should formalize a communication channel where people can 
 advertise these transactions so that others can pay the gas for them and recive a reward.  
