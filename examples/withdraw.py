@@ -34,7 +34,7 @@ if __name__ == "__main__":
     pk_output = "../zksnark_element/pk_rinkby.raw"
  
     deployedAddress = "0xB586453a8e44c86E012958E48a0DeCED462BD16e"
-    withdrawIndex = input("Enter the name of the deposit file you would like to use. SHould be something like 0.json\n")
+    withdrawIndex = input("Enter the name of the deposit file you would like to use. Should be something like 0.json\n")
 
     miximus_interface , verifier_interface  = compile(tree_depth)
     miximus = w3.eth.contract(address=deployedAddress, abi=miximus_interface['abi'],ContractFactoryClass=ConciseContract)
