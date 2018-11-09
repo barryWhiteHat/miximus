@@ -40,7 +40,7 @@ Start your prefered ethereum node, `cd tests` and run `python3 test.py` This wil
 
 ### Examples
 The examples are interactive and ask you for the addresses you want to send from and to. The contract is deployed on the Rinkeby test net. These
-scripts deposit and withdraw form that contract. 
+scripts deposit and withdraw from that contract. 
 `cd examples`
 deposit `python3 deposit.py` ether this will create a transaction from an account of your chosing to send 1 ether to the smart contract. It will create 
 a files of the forum `%d.json` where `%d` is the merkel tree index of your commitment. 
