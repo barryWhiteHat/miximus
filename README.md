@@ -45,7 +45,7 @@ scripts deposit and withdraw from that contract.
 deposit `python3 deposit.py` ether this will create a transaction from an account of your chosing to send 1 ether to the smart contract. It will create 
 a files of the forum `%d.json` where `%d` is the merkel tree index of your commitment. 
 
-`python3 withdraw.py` will ask you for a file `%d.json` it will call libsnark and generate a proof with proving key `../zksnark_elements/pk_rinkby.raw`
+`python3 withdraw.py` will ask you for a file `%d.json` it will call libsnark and generate a proof with proving key `../zksnark_elements/pk_rinkeby.raw`
 `python3 withdraw.py` takes a long time to run so make sure that your `eth.accounts[0]` is unlocked by the time the transaction gets broadcast. otherwise 
 it will drop to pdb debugger.
 

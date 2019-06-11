@@ -31,7 +31,7 @@ w3.middleware_stack.inject(geth_poa_middleware, layer=0)
 if __name__ == "__main__":
     tree_depth = 29
 
-    pk_output = "../zksnark_element/pk_rinkby.raw"
+    pk_output = "../zksnark_element/pk_rinkeby.raw"
  
     deployedAddress = "0xB586453a8e44c86E012958E48a0DeCED462BD16e"
     withdrawIndex = input("Enter the name of the deposit file you would like to use. Should be something like 0.json\n")
