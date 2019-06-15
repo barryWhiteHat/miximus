@@ -158,7 +158,7 @@ public:
         // generate constraints
         //root_digest.generate_r1cs_constraints();
         unpacker->generate_r1cs_constraints(true);
-        unpacker1->generate_r1cs_constraints(false);
+        unpacker1->generate_r1cs_constraints(true);
   
         generate_r1cs_equals_const_constraint<FieldT>(pb, ZERO, FieldT::zero(), "ZERO");
         cm_hash->generate_r1cs_constraints(true);
